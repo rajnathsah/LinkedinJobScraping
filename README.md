@@ -1,6 +1,6 @@
 # Scrape Linkedin content for job
 
-Linkedin is for professional networking. it is also used by employers posting jobs. There are cases where recruiter post job on there post which can be searched as content. When i was searching job, i found many such jobs were posted by recruiter as post. To search such job, one has to search content. I tried to automate the same by scraping the content using python, selenium and beautifulsoup.  
+Linkedin is for professional networking. it is also used by employers for posting jobs. There are cases where recruiters post job on there page which can be searched as content. When i was searching job, i found many jobs were posted by recruiter as post. To search such job, one has to search content. I tried to automate the same by scraping the content using python, selenium and beautifulsoup.  
 
 ## Requirement
 1. [Python 3.x](https://www.python.org/)
@@ -14,15 +14,15 @@ pip install -r requirements.txt
 
 Let us go through the code.  
 
-For scraping linkedin content, i have used selenium to browse the page. Selenium uses web driver, i have chosen chrome webdriver for this, which can be downloaded from [chrome webdriver](https://chromedriver.chromium.org/downloads). But since i am trying to automate the whole stuff, i have added a piece code which will check for chrome webdriver first and if it is not present then it will download latest one, unzip it and place it in current working directory. It is always better to user latest chrome web driver with latest chrome browser. For this, this script will check if chrome web driver used is more than 7 day old, then it will download latest one and replace the old file.
+For scraping linkedin content, i have used selenium to browse the page. Selenium uses web driver, i have chosen chrome web driver for this, which can be downloaded from [chrome web driver](https://chromedriver.chromium.org/downloads). But since i am trying to automate the whole stuff, i have added a piece code which will check for chrome webdriver first and if it is not present then it will download latest one, unzip it and place it in current working directory. It is always better to use latest chrome web driver with latest chrome browser. For this, this script will check if chrome web driver used is more than 7 day old, then it will download latest one and replace the old one.
 
-Module driver has a python file chromedriver.py, it has two function, get_chrome_driver_release for getting the latest chrome driver release version.
+Module driver has a python file chromedriver.py, it has two function, get_chrome_driver_release for getting the latest chrome driver release version
 ```python
 def get_chrome_driver_release():
     result = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
     return result.text
 ```
-And other for downloading the chrome driver.
+and download_driver for downloading the chrome driver.
 ```python
 def download_driver(version):
     driver_download_url= 'https://chromedriver.storage.googleapis.com/{}/chromedriver_win32.zip'.format(version)
@@ -30,10 +30,9 @@ def download_driver(version):
     driver_zipfile = zipfile.ZipFile(io.BytesIO(chrome_req.content))
     driver_zipfile.extractall()
 ```
-
 In case one wish to download driver manually, above code piece can be ignored.  
 
-In ScrapeLinkedin.py file, add needed import statement.
+Let us start with main file ScrapeLinkedin.py code. On top all needed import statements are included.
 ```python
 import time
 import datetime
@@ -45,13 +44,12 @@ from selenium import webdriver
 from bs4 import BeautifulSoup as bs
 from driver import chromedriver
 ```
-
 Get current working directory path to locate chrome web driver.
 ```python
 cur_dir_path=os.getcwd()
 path_to_driver=os.path.join(cur_dir_path,'chromedriver')
 ```
-Check if chrome web driver is present, if not then download latest one. In case driver is older than 7 days then also download latest one. In case of any error, i am re-raised the execption to stop the program.  
+Check if chrome web driver is present, if not then download latest one. In case driver is older than 7 days then also download latest one. In case of any error, re-raise the execption to stop the program.  
 ```python
 try:
     if os.path.isfile(path_to_driver):            
@@ -66,12 +64,11 @@ except Exception as ex:
     print('Error in finding/downloading chromedriver : {}-{}'.format(path_to_driver,ex))
     raise
 ```
-
-Define max time for scrolling linkedin content page based on your need. It is good idea to have it defined as linkedin content pages will have lot of contents.  
+Define max time for scrolling linkedin content page based on your need. It is good idea to set as linkedin content pages will have lot of contents.  
 ```python
 endTime = time.time() + 60*5 # 5 min
 ```
-Using csv wrtitter, create output.csv file with header.
+Using csv writer, create output.csv file with header for writing scrapped content.
 ```python
 writer = csv.writer(open('output\output.csv', 'w+', encoding='utf-8-sig', newline=''))
 writer.writerow(['Profile', 'Description', 'Job URL'])
@@ -116,7 +113,7 @@ while time.time() < endTime:
     page = bs(browser.page_source, 'lxml')    
     content = page.find_all('li',{'class':'search-content__result search-entity ember-view'})
     
-    # loop through all content block and extract data
+    # loop through all content block and extract data, findNext for searching nested html elements contents beautifulsoup
     for c in content:            
         try:
             profile_url = c.find('a',{'class':'feed-shared-actor__container-link relative display-flex flex-grow-1 app-aware-link ember-view'}).get('href')
